@@ -1,0 +1,61 @@
+function DCP_merge_matrix(opt)
+  if ~exist(opt.output)
+      mkdir(opt.output)
+  end
+  subFile=dir(opt.input);
+  opt.subInd=opt.subInd+2;
+  j=1;
+  for i=3:length(opt.input)
+      if ismember(i,opt.subInd)
+          if subFile(i).isdir==1
+              if opt.matrix_fn==1
+                  if opt.aal90==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal90_Matrix_FNum.mat']);
+                      FN90{j}=Matrix_FNum;
+                  end
+                   if opt.aal1024==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal1024_Matrix_FNum.mat']);
+                      FN1024{j}=Matrix_FNum;
+                  end
+              end
+              if opt.matrix_length==1
+                  if opt.aal90==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal90_Matrix_Length.mat']);
+                      Length90{j}=Matrix_Length;
+                  end
+                   if opt.aal1024==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal1024_Matrix_Length.mat']);
+                      Length1024{j}=Matrix_Length;
+                  end
+              end
+              if opt.matrix_fa==1
+                  if opt.aal90==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal90_Matrix_dti_fa.mat']);
+                      FA90{j}=Matrix_dti_fa;
+                  end
+                   if opt.aal1024==1
+                      load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'aal1024_Matrix_dti_fa.mat']);
+                      FN1024{j}=Matrix_dti_fa;
+                  end
+              end
+              if opt.matrix_md==1
+                  load([opt.input filesep subFile(i).name filesep 'DCP_MATRIX' filesep 'Matrix_dti_md.mat']);
+                  MD{j}=Matrix_dti_md;
+              end
+              j=j+1;
+          end
+      end
+  end
+  if opt.matrix_fn==1
+      save([opt.output filesep 'FN.mat'],'FN');
+  end
+   if opt.matrix_fa==1
+       save([opt.output filesep 'FA.mat'],'FA');
+   end
+   if opt.matrix_md==1
+       save([opt.output filesep 'MD.mat'],'MD');
+   end
+   if opt.matrix_len==1
+       save([opt.output filesep 'Length.mat'],'Length');
+   end
+end
