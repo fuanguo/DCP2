@@ -54,7 +54,7 @@ function DCP_parcellation(subFile,opt)
  else
      load([parentPath filesep 'cfg' filesep 'defJob12.mat']);
      matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.comp{1, 1}.sn2def.matname={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1_sn.mat']};
-     matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.space={[subFile 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
+     matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.space={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
      matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.savedir.saveusr={[subFile filesep 'DCP_PARCELLATION' filesep]};
      matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.fnames={opt.atlas};
      spm_jobman('run',matlabbatch);
