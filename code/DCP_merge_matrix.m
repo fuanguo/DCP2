@@ -103,8 +103,8 @@ function merge_matrix_native(inputFile,outputFile,subFile,subIndex,trkName,tmpNa
     for i=subIndex
         load([inputFile filesep subFile(i).name filesep 'DCP_MATRIX' filesep...
             subFile(i).name '_' trkName '_' tmpName '.mat']);
-        eval(['native.' subFile(i).name '=Matrix_' tmpName ';']);
+        eval(['native_' tmpName '.' subFile(i).name '=Matrix_' tmpName ';']);
     end
-    save([outputFile filesep trkName '_native.mat'],...
-        'native');
+    save([outputFile filesep trkName '_native_' tmpName '.mat'],...
+        ['native_' tmpName]);
 end

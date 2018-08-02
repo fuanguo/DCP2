@@ -161,12 +161,12 @@ function DCP_run(opt,monitor)
 %                 pipeline.(jobnameMatrixAAL).files_in.files{1}=pipeline.(jobnameTrack).files_out;
 %                 pipeline.(jobnameMatrixAAL).files_in.files{2}=pipeline.(jobnameParAAL).files_out;
 %                 pipeline.(jobnameMatrixAAL).opt=opt.matrix;
-              try
+%               try
                   DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
-                  fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
-              catch
-                  fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
-              end
+%                   fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+%               catch
+%                   fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+%               end
             end
             if opt.parcellation.random==1
                 opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'aal1024.nii'];
@@ -235,4 +235,5 @@ function DCP_run(opt,monitor)
     end
     fclose(fid);
     set(monitor,'String','Finished');
+    fclose all;
 end
