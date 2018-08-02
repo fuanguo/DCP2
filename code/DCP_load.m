@@ -1,6 +1,7 @@
 function DCP_load(handles, opt)
     set(handles.inputEdit, 'String', opt.inputFile);
     set(handles.subEdit, 'String', opt.sub);
+    opt.pipeline.type=opt.pipeline.type;
     set(handles.subType, 'Value', opt.pipeline.type);
     if (opt.pipeline.type==3)
         set(handles.SGEoption, 'Visible', 'On');

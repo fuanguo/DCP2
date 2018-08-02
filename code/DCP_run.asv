@@ -1,4 +1,4 @@
-function DCP_run(opt,monitor)
+function DCP_run(opt)
     mfilePath=mfilename('fullpath');
     filesepIndex=regexp(mfilePath,filesep);
     DCPPath=mfilePath(1:filesepIndex(length(filesepIndex)-1));
@@ -20,7 +20,7 @@ function DCP_run(opt,monitor)
     end
     for i=subIndex
         if opt.preprocessing.convert==1
-            set(monitor,'String',[subFile(i).name ' convertion']);
+            disp(['Running ' subFile(i).name ' convertion']);
 %             jobnameDcm=['dcm2nii_' subFile(i).name];
 %             pipeline.(jobnameDcm).command='DCP_dcm2nii(files_in);';
 %             pipeline.(jobnameDcm).files_in=[opt.inputFile filesep subFile(i).name filesep];
@@ -47,7 +47,7 @@ function DCP_run(opt,monitor)
               end
         end
         if opt.preprocessing.eddy==1
-            set(monitor,'String',[subFile(i).name ' eddycurrent correction']);
+            disp(['Running ' subFile(i).name ' eddycurrent correction']);
 %             jobnameEddy=['eddyCurrent_' subFile(i).name];
 %             pipeline.(jobnameEddy).command='DCP_eddycurrent(files_in);';
 %             if opt.preprocessing.convert==1
@@ -64,7 +64,7 @@ function DCP_run(opt,monitor)
               end
         end
         if opt.preprocessing.tensorCal==1
-            set(monitor,'String',[subFile(i).name ' tensor calculation']);
+            disp(['Running ' subFile(i).name ' tensor calculation']);
 %             jobnameTensor=['tensor_' subFile(i).name];
 %             pipeline.(jobnameTensor).command='DCP_calctensor(files_in)';
 %             if opt.preprocessing.eddy==1
@@ -81,7 +81,7 @@ function DCP_run(opt,monitor)
               end
         end
         if opt.tracktography.flag==1
-            set(monitor,'String',[subFile(i).name ' tracktography']);
+            disp(['Running ' subFile(i).name ' tracktography']);
 %             jobnameTrack=['track_' subFile(i).name];
 %             pipeline.(jobnameTrack).command='DCP_tracker(files_in,opt.tracktography)';
 %             pipeline.(jobnameTrack).opt=opt.tracktography;
@@ -97,14 +97,14 @@ function DCP_run(opt,monitor)
                   if isempty(track_file)
                       fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
                   else
-                      fprintf(fid,[subFile(i).name '''s trakctography is done\n']);
+                   fprintf(fid,[subFile(i).name '''s trakctography is done\n']);
                   end
               catch
                   fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
               end
         end
         if opt.parcellation.flag==1
-            set(monitor,'String',[subFile(i).name ' parcellation']);
+            disp(['Running ' subFile(i).name ' parcellation']);
             if opt.parcellation.aal==1
                 opt.parcellation.atlas=[DCPPath filesep 'templates' filesep 'aal90.nii'];
 %                 jobnameParAAL=['parcellationAAL_' subFile(i).name];
@@ -149,7 +149,7 @@ function DCP_run(opt,monitor)
             end
         end
         if opt.matrix.flag==1
-            set(monitor,'String',[subFile(i).name ' matrix construction']);
+            disp(['Running ' subFile(i).name ' matrix construction']);
             opt.matrix.angle=opt.tracktography.angle;
             opt.matrix.lowFA=opt.tracktography.lowFA;
             opt.matrix.seed=opt.tracktography.seed;
@@ -224,15 +224,14 @@ function DCP_run(opt,monitor)
 %         psom_pipeline_visu(pipeopt.path_logs,'monitor');
 %     end
     if opt.merge.flag==1
-        set(monitor,'String','Results merging');
+        disp(['Running results merging']);
     %         DCP_merge_matrix(opt);
         try
             DCP_merge_matrix(opt);
-            fprintf(fid,'Matrix merging is done\n');
+            fprintf(fid,[subFile(i).name '''s matrix merging is done\n']);
         catch
-            fprintf(fid,'Matrix merging is failed\n');
+            fprintf(fid,[subFile(i).name '''s matrix merging is failed\n']);
         end
     end
     fclose(fid);
-    set(monitor,'String','Finished');
 end

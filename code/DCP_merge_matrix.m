@@ -3,7 +3,7 @@ function DCP_merge_matrix(opt)
       mkdir(opt.merge.outputFile)
   end
   subFile=dir(opt.inputFile);
-  if regexp(computer,'MACI') && strcmp(subFile(3).name, '.DS_Store')
+  if ~isempty(regexp(computer,'MACI')) && strcmp(subFile(3).name, '.DS_Store')
         subFile(3)=[];
   end
   if strcmp(opt.sub,'All subjects')
@@ -102,9 +102,9 @@ end
 function merge_matrix_native(inputFile,outputFile,subFile,subIndex,trkName,tmpName)
     for i=subIndex
         load([inputFile filesep subFile(i).name filesep 'DCP_MATRIX' filesep...
-            atlasName '_' trkName '_' subFile(i).name '.mat']);
+            subFile(i).name '_' trkName '_' tmpName '.mat']);
         eval(['native.' subFile(i).name '=Matrix_' tmpName ';']);
     end
-    save([outputFile filesep trkName '_' atlasName '_' 'native.mat'],...
+    save([outputFile filesep trkName '_native.mat'],...
         'native');
 end

@@ -1,11 +1,12 @@
 function DCP_dcm2nii(subPath)
   if exist(subPath)==7
     modalityFile=dir(subPath);
-    if regexp(computer,'MACI') && strcmp(modalityFile(3).name, '.DS_Store')
+    if ~isempty(regexp(computer,'MACI')) && strcmp(modalityFile(3).name, '.DS_Store')
         modalityFile(3)=[];
     end
     for i=3:length(dir(subPath))
-        if modalityFile(i).isdir==1
+        if modalityFile(i).isdir==1 && ~strcmp(modalityFile(i).name, 'DCP_DTI_DATA') && ~strcmp(modalityFile(i).name, 'DCP_PARCELLATION')...
+                 && ~strcmp(modalityFile(i).name, 'MATRIX')
             DCP_dcm2nii_cmd([subPath filesep modalityFile(i).name])
         end
     end

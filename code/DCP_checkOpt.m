@@ -18,6 +18,7 @@ function [flag,mSub]=DCP_checkInput(inputFile,subIndex)
     end
     numsub=zeros(1,length(index));
     for i=1:length(index)
+        
         allFiles=dir([inputFile filesep sub(index(i)).name]);
         if strcmp(allFiles(3).name,'.DS_Store')
             allFiles(3)=[];
