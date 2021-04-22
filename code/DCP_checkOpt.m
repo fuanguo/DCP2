@@ -30,8 +30,10 @@ function [flag,mSub]=DCP_checkInput(inputFile,subIndex)
         flag=true;
         mSub=[];
     else
-        flag=false;
-        mSub=sub(index(missingSub(1)));
+        flag=true;
+	mSub=[];
+        %flag=false;
+        %mSub=sub(index(missingSub(1)));
     end
 end
 function [flag, errorMsg]=DCP_checkPara(opt)

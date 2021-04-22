@@ -1,4 +1,7 @@
 function DCP_merge_matrix(opt)
+  if isempty(opt.merge.outputFile)
+      opt.merge.outputFile=[opt.inputFile '_result_' datestr(now(),'yy_mm_dd_HH_MM_SS')];
+  end
   if ~exist(opt.merge.outputFile)
       mkdir(opt.merge.outputFile)
   end
@@ -89,6 +92,17 @@ function DCP_merge_matrix(opt)
           merge_matrix_native(opt.inputFile,opt.merge.outputFile,subFile,subIndex,trkname,tmpName);
       end
   end
+  merge_qc(opt.inputFile,opt.merge.outputFile,subFile,subIndex)
+end
+function merge_qc(inputFile,outputFile,subFile,subIndex)
+    mkdir([outputFile filesep 'QC']);
+    for i=subIndex
+        tifffiles=dir([inputFile filesep subFile(i).name filesep 'DCP_PARCELLATION' filesep '*.tiff']);
+        for j=1:length(tifffiles)
+            copyfile([inputFile filesep subFile(i).name filesep 'DCP_PARCELLATION' filesep tifffiles(j).name],...
+                [outputFile filesep 'QC' filesep subFile(i).name '_' tifffiles(j).name]);
+        end
+    end
 end
 function merge_matrix(inputFile,outputFile,subFile,subIndex,trkName,atlasName,tmpName)
     for i=subIndex

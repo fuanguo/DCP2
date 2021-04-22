@@ -26,8 +26,8 @@ function DCP_bet(input,fValue,output,mask)
            movefile([output filesep 'fbet_' inputName '.nii'],[output filesep 'bet_' inputName '.nii']);
            movefile([output filesep 'fbet_' inputName '_mask.nii'],[output filesep 'bet_' inputName '_mask.nii']);
       end
-      delete([output filesep '*.hdr']);
-      delete([output filesep '*.img']);
+      %delete([output filesep '*.hdr']);
+      %delete([output filesep '*.img']);
   else
       if mask==0
         system(['bet2 ' input ' ' output filesep 'bet_' inputName ' -f ' num2str(fValue)]);
