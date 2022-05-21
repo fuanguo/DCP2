@@ -1,75 +1,182 @@
-function DCP_parcellation(subFile,opt)
-  DCP_bet([subFile filesep 'DCP_DTI_DATA' filesep 'dti_b0.nii'], opt.B0, [subFile filesep 'DCP_PARCELLATION'],1);
+function DCP_parcellation(subFile,opt,pi)
+  if pi==1
+    DCP_bet([subFile filesep 'DCP_DTI_DATA' filesep 'dti_b0.nii'], opt.B0, [subFile filesep 'DCP_PARCELLATION'],1);
+  else
+      bedpostX=dir(strcat(subFile,'*.bedpostX'));
+      bedpostx_path=bedpostX(1).name;
+      
+      mkdir(strcat(subFile,'DCP_DTI_DATA'));
+      copyfile(strcat(subFile,bedpostx_path,'\nodif_brain.nii.gz'),strcat(subFile,'DCP_DTI_DATA\dti_b0.nii.gz'));
+      copyfile(strcat(subFile,bedpostx_path,'\dti_FA.nii.gz'),strcat(subFile,'DCP_DTI_DATA\dti_fa.nii.gz'));
+      copyfile(strcat(subFile,bedpostx_path,'\dti_MD.nii.gz'),strcat(subFile,'DCP_DTI_DATA\dti_adc.nii.gz'));
+      gunzip(strcat(subFile,'DCP_DTI_DATA\dti_b0.nii.gz'));
+      gunzip(strcat(subFile,'DCP_DTI_DATA\dti_fa.nii.gz'));
+      gunzip(strcat(subFile,'DCP_DTI_DATA\dti_adc.nii.gz'));
+      
+      mkdir(strcat(subFile,'DCP_PARCELLATION'));
+      t1_file=dir(strcat(subFile,'T1\co*.nii'));
+      copyfile(strcat(subFile,'T1\',t1_file(1).name),strcat(subFile,'DCP_PARCELLATION\T1.nii'));
+      
+      copyfile(strcat(subFile,bedpostx_path,'\nodif_brain.nii.gz'),strcat(subFile,'DCP_PARCELLATION\bet_dti_b0.nii.gz'));
+      copyfile(strcat(subFile,bedpostx_path,'\nodif_brain_mask.nii.gz'),strcat(subFile,'DCP_PARCELLATION\bet_dti_b0_mask.nii.gz'));
+      gunzip(strcat(subFile,'DCP_PARCELLATION\bet_dti_b0_mask.nii.gz'));
+      gunzip(strcat(subFile,'DCP_PARCELLATION\bet_dti_b0.nii.gz'));
+  end
   DCP_bet([subFile filesep 'DCP_PARCELLATION' filesep 'T1.nii'], opt.T1, [subFile filesep 'DCP_PARCELLATION'],0);
-  DCP_reorient([subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']);
-  DCP_reorient([subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']);
+  if pi==1
+      DCP_reorient([subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']);
+      DCP_reorient([subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']);
+  end
   VG=spm_vol([subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']);
   VF=spm_vol([subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']);
   mfilePath=mfilename('fullpath');
   filesepIndex=regexp(mfilePath,filesep);
   parentPath=mfilePath(1:filesepIndex(length(filesepIndex)-1));
- if strcmp(opt.spm,'spm8')
-    job.eoptions.cost_fun='nmi';eoptions.sep=[4,2];
-    job.eoptions.tol=[ 0.0200,0.0200,0.0200,0.0010,0.0010,0.0010,0.0100,0.0100,0.0100,0.0010,0.0010,0.0010];
-    job.eoptions.fwhm=[7,7];
-    job.roptions.interp=1;job.roptions.wrap=[0,0,0];job.roptions.mask=0;job.roptions.prefix='r';
-    job.ref={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
-    job.source= {[subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']};
-    job.other={[]};
-    spm_run_coreg_estwrite(job);
- else
+ 
+%  if strcmp(opt.spm,'spm8')
+%     job.eoptions.cost_fun='nmi';eoptions.sep=[4,2];
+%     job.eoptions.tol=[ 0.0200,0.0200,0.0200,0.0010,0.0010,0.0010,0.0100,0.0100,0.0100,0.0010,0.0010,0.0010];
+%     job.eoptions.fwhm=[7,7];
+%     job.roptions.interp=1;job.roptions.wrap=[0,0,0];job.roptions.mask=0;job.roptions.prefix='r';
+%     job.ref={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
+%     job.source= {[subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']};
+%     job.other={[]};
+%     spm_run_coreg_estwrite(job);
+%  else
     load([parentPath filesep 'cfg' filesep 'CorJob12.mat']);
     matlabbatch{1, 1}.spm.spatial.coreg.estwrite.ref={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
     matlabbatch{1, 1}.spm.spatial.coreg.estwrite.source= {[subFile filesep 'DCP_PARCELLATION' filesep 'bet_T1.nii']};
     spm_jobman('run',matlabbatch);
     clear matlabbatch;
- end
+%  end
  mask_T1([subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii'],[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'])
- if strcmp(opt.spm,'spm8')
-    normaliseJob.subj.source={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii']};
-    normaliseJob.subj.wtsrc='';
-    normaliseJob.eoptions.template={[opt.template]};
-    normaliseJob.eoptions.weight='';
-    normaliseJob.eoptions.smosrc=8;
-    normaliseJob.eoptions.smoref=0;
-    normaliseJob.eoptions.regtype='mni';
-    normaliseJob.eoptions.cutoff=25;
-    normaliseJob.eoptions.nits=16;
-    normaliseJob.eoptions.reg=1;
-    spm_run_normalise_estimate(normaliseJob);
- else
-    load([parentPath filesep 'cfg' filesep 'NorJob12.mat']);
-    matlabbatch{1, 1}.spm.tools.oldnorm.est.subj.source={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii']};
-    matlabbatch{1, 1}.spm.tools.oldnorm.est.eoptions.template={[opt.template]};
+%  if strcmp(opt.spm,'spm8')
+%     normaliseJob.subj.source={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii']};
+%     normaliseJob.subj.wtsrc='';
+%     normaliseJob.eoptions.template={[opt.template]};
+%     normaliseJob.eoptions.weight='';
+%     normaliseJob.eoptions.smosrc=8;
+%     normaliseJob.eoptions.smoref=0;
+%     normaliseJob.eoptions.regtype='mni';
+%     normaliseJob.eoptions.cutoff=25;
+%     normaliseJob.eoptions.nits=16;
+%     normaliseJob.eoptions.reg=1;
+%     spm_run_normalise_estimate(normaliseJob);
+%  else
+%     load([parentPath filesep 'cfg' filesep 'NorJob12.mat']);
+%     matlabbatch{1, 1}.spm.tools.oldnorm.est.subj.source={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii']};
+%     matlabbatch{1, 1}.spm.tools.oldnorm.est.eoptions.template={[opt.template]};
+%     spm_jobman('run',matlabbatch);
+%     clear matlabbatch;
+    load([parentPath filesep 'cfg' filesep 'segNorm12.mat']);
+    matlabbatch{1, 1}.spm.spatial.preproc.channel.vols={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii']};
     spm_jobman('run',matlabbatch);
     clear matlabbatch;
- end
+%  end
 
- if strcmp(opt.spm,'spm8')
-    load([parentPath filesep 'cfg' filesep 'defJob.mat']);
-    defJob.comp{1,1}.inv.comp{1,1}.sn2def.matname={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1_sn.mat']};
-    defJob.comp{1,1}.inv.space={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
-    defJob.fnames={opt.atlas};
-    defJob.savedir.saveusr={[subFile filesep 'DCP_PARCELLATION' filesep]};
-    defJob.interp=0;
-    spm_defs(defJob);
- else
-     load([parentPath filesep 'cfg' filesep 'defJob12.mat']);
-     matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.comp{1, 1}.sn2def.matname={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1_sn.mat']};
-     matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.space={[subFile 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
-     matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.savedir.saveusr={[subFile filesep 'DCP_PARCELLATION' filesep]};
-     matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.fnames={opt.atlas};
-     spm_jobman('run',matlabbatch);
-     clear matlabbatch;
- end
- [~,atlasName,~]=fileparts(opt.atlas);
- NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii'],...
-     [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
-     [subFile filesep 'DCP_PARCELLATION' filesep 'T1_b0.tiff']);
- NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '.nii'],...
-     [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
-     [subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '_b0.tiff']);
-%  delete([subFile filesep 'DCP_PARCELLATION' filesep '*_dti_b0*.nii']);
+%  if strcmp(opt.spm,'spm8')
+%     load([parentPath filesep 'cfg' filesep 'defJob.mat']);
+%     defJob.comp{1,1}.inv.comp{1,1}.sn2def.matname={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1_sn.mat']};
+%     defJob.comp{1,1}.inv.space={[subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
+%     defJob.fnames={atlas};
+%     defJob.savedir.saveusr={[subFile filesep 'DCP_PARCELLATION' filesep]};
+%     defJob.interp=0;
+%     spm_defs(defJob);
+%  else
+%      load([parentPath filesep 'cfg' filesep 'defJob12.mat']);
+%      matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.comp{1, 1}.sn2def.matname={[subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1_sn.mat']};
+%      matlabbatch{1, 1}.spm.util.defs.comp{1, 1}.inv.space={[subFile 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']};
+%      matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.savedir.saveusr={[subFile filesep 'DCP_PARCELLATION' filesep]};
+%      matlabbatch{1, 1}.spm.util.defs.out{1, 1}.pull.fnames={atlas};
+%      spm_jobman('run',matlabbatch);
+%      clear matlabbatch;
+    load([parentPath filesep 'cfg' filesep 'Nor_w_Job12.mat']);
+    matlabbatch{1, 1}.spm.spatial.normalise.write.subj.def={[subFile 'DCP_PARCELLATION' filesep 'iy_rbet_T1.nii']};
+    hd=spm_vol([subFile 'DCP_PARCELLATION' filesep 'bet_dti_b0.nii']);
+    mat=hd.mat;
+    dim=hd.dim;
+    for i=1:3
+        for j=1:3
+            if mat(i,j)*mat(i,4)>0
+                if mat(i,4)>0
+                    array_min(j,i)=1;
+                    array_max(j,i)=dim(j);
+                else
+                    array_min(j,i)=dim(j);
+                    array_max(j,i)=1;
+                end
+            else
+                if mat(i,4)>0
+                    array_min(j,i)=dim(j);
+                    array_max(j,i)=1;
+                else
+                    array_min(j,i)=1;
+                    array_max(j,i)=dim(j);
+                end
+            end
+        end
+        array_min(4,i)=1;
+        array_max(4,i)=1;
+    end
+    b_min=round(mat*array_min);
+    b_max=round(mat*array_max);
+   for i=1:3
+       vox(i)=sqrt(mat(i,1)^2+mat(i,2)^2+mat(i,3)^2);
+       bb(1,i)=b_min(i,i);
+       bb(2,i)=b_max(i,i);
+   end
+    
+%     for i=1:3
+%         vox(i)=abs(hd.mat(i,i));
+%         if bb(1,i)>0
+%             temp=bb(1,i);
+%             bb(1,i)=bb(2,i);
+%             bb(2,i)=temp;
+%         end
+% %         bb(1,i)=floor(bb(1,i));
+% %         bb(2,i)=ceil(bb(2,i));
+%     end
+    matlabbatch{1, 1}.spm.spatial.normalise.write.woptions.bb=bb;
+    matlabbatch{1, 1}.spm.spatial.normalise.write.woptions.vox=vox;
+    for i=1:length(opt.atlas)
+        atlas=cell2mat(opt.atlas(i));
+        
+        matlabbatch{1, 1}.spm.spatial.normalise.write.subj.resample={atlas};
+        
+        spm_jobman('run',matlabbatch);
+        [ImagePath, FileName, extname] = fileparts(which('DCP.m'));
+        [~,atlasName,~]=fileparts(atlas);
+        
+        movefile([ImagePath filesep 'templates' filesep 'w' atlasName '.nii'],[subFile filesep 'DCP_PARCELLATION']);
+
+    %  end
+     %[~,atlasName,~]=fileparts(atlas);
+%       NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii'],...
+%           [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
+%           [subFile filesep 'DCP_PARCELLATION' filesep 'T1_b0.tiff']);
+%       NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '.nii'],...
+%           [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
+%           [subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '_b0.tiff']);
+    %  delete([subFile filesep 'DCP_PARCELLATION' filesep '*_dti_b0*.nii']);
+    end
+    
+    clear matlabbatch;
+    load([parentPath filesep 'cfg' filesep 'ResliceJob12.mat']);
+    for i=1:length(opt.atlas)
+        atlas=cell2mat(opt.atlas(i));
+        [~,atlasName,~]=fileparts(atlas);
+         matlabbatch{1, 1}.spm.spatial.coreg.write.ref={strcat(subFile,'DCP_PARCELLATION\bet_dti_b0.nii,1')};
+         matlabbatch{1, 1}.spm.spatial.coreg.write.source={strcat(subFile,'DCP_PARCELLATION\w',atlasName,'.nii,1')};
+         spm_jobman('run',matlabbatch);
+        delete([subFile,'DCP_PARCELLATION' filesep 'w' atlasName '.nii']);
+        movefile([subFile,'DCP_PARCELLATION' filesep 'rw' atlasName '.nii'],[subFile,'DCP_PARCELLATION' filesep 'w' atlasName '.nii']);
+        NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'rbet_T1.nii'],...
+          [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
+          [subFile filesep 'DCP_PARCELLATION' filesep 'T1_b0.tiff']);
+        NormalizeCHk([subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '.nii'],...
+          [subFile filesep 'DCP_PARCELLATION' filesep 'bet_dti_b0_mask.nii'],...
+          [subFile filesep 'DCP_PARCELLATION' filesep 'w' atlasName '_b0.tiff']);
+    end
 end
 function mask_T1(rT1File, maskFile)
     rT1 = spm_vol(rT1File);
@@ -156,10 +263,24 @@ ABCGsall(floor((maxlim/2)-(ch2_hdr.dim(3)/2))+1:floor((maxlim/2)+(ch2_hdr.dim(3)
 ABCGsall(floor((maxlim/2)-(ch2_hdr.dim(2)/2))+1:floor((maxlim/2)+(ch2_hdr.dim(2)/2)),2*maxlim+1:2*maxlim+ch2_hdr.dim(1))  = rot90(ABCGs3);
 overlay=repmat(ABCGsall, [1, 1, 3]);
 overlay(:,:,2:3)=overlay(:,:,2:3)/1.5;
-outputimg=imresize(imadd(underlay./2,overlay./2),2);
+%outputimg=imresize(imadd_(underlay./2,overlay./2),2);
+outputimg=imresize(((underlay./2)+(overlay./2)),2);
         
 imwrite(outputimg, TIFFile);
 end
+
+function new_mat=imadd_(mat1,mat2)
+new_mat=mat1;
+for i=1:size(mat1,1)
+    for j=1:size(mat1,2)
+        for k=1:size(mat1,3)
+            new_mat(i,j,k)=mat1(i,j,k)+mat2(i,j,k);
+        end
+    end
+end
+end
+
+
 function ABCGvolume =getABCgrayimage(volume)
 	Result =volume;
 	%Save Maping Image parameters, Auto balance 20070911 revised, 20070914 revised for Statistical map which has negative values	

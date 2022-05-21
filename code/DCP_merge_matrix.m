@@ -35,8 +35,8 @@ function DCP_merge_matrix(opt)
           merge_matrix(opt.inputFile,opt.merge.outputFile,subFile,subIndex,trkname,atlasName,tmpName);
       end
   end
-  if opt.parcellation.random==1
-      atlasName='waal1024';
+  if opt.parcellation.bna==1
+      atlasName='wBN246_1mm';
       if opt.matrix.fn==1
           tmpName='FNum';
           merge_matrix(opt.inputFile,opt.merge.outputFile,subFile,subIndex,trkname,atlasName,tmpName);

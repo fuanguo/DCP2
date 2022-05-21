@@ -1,5 +1,10 @@
 function [flag, errorMsg]=DCP_checkOpt(opt)
-    [flag,sub]=DCP_checkInput(opt.inputFile,opt.sub);
+    subject=dir(opt.inputFile);
+    if length(subject)>2
+        [flag,sub]=DCP_checkInput(opt.inputFile,opt.sub);
+    else
+        flag=1;
+    end
     if flag
         [flag, errorMsg]=DCP_checkPara(opt);
     else
@@ -8,33 +13,35 @@ function [flag, errorMsg]=DCP_checkOpt(opt)
 end
 function [flag,mSub]=DCP_checkInput(inputFile,subIndex)
     sub=dir(inputFile);
-    if strcmp(sub(3).name, '.DS_Store')
-        sub(3)=[];
-    end
-    if strcmp(subIndex,'All subjects')
-        index=3:length(sub);
-    else
-        index=eval([subIndex ';'])+2;
-    end
-    numsub=zeros(1,length(index));
-    for i=1:length(index)
-        
-        allFiles=dir([inputFile filesep sub(index(i)).name]);
-        if strcmp(allFiles(3).name,'.DS_Store')
-            allFiles(3)=[];
+    
+        if strcmp(sub(3).name, '.DS_Store')
+            sub(3)=[];
         end
-        numsub(i)=length(allFiles)-2;
-    end
-    missingSub=find(numsub<max(numsub));
-    if isempty(missingSub)
-        flag=true;
+        if strcmp(subIndex,'All subjects')
+            index=3:length(sub);
+        else
+            index=eval([subIndex ';'])+2;
+        end
+        numsub=zeros(1,length(index));
+        for i=1:length(index)
+
+            allFiles=dir([inputFile filesep sub(index(i)).name]);
+            if strcmp(allFiles(3).name,'.DS_Store')
+                allFiles(3)=[];
+            end
+            numsub(i)=length(allFiles)-2;
+        end
+        missingSub=find(numsub<max(numsub));
+        if isempty(missingSub)
+            flag=true;
+            mSub=[];
+        else
+            flag=true;
         mSub=[];
-    else
-        flag=true;
-	mSub=[];
-        %flag=false;
-        %mSub=sub(index(missingSub(1)));
-    end
+            %flag=false;
+            %mSub=sub(index(missingSub(1)));
+        end
+    
 end
 function [flag, errorMsg]=DCP_checkPara(opt)
     flag=true; errorMsg=[];

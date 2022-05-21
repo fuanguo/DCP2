@@ -92,7 +92,7 @@ function DCP_DTI_matrix(trkFile,atlasFile,brainLabel,templateFile,output,FNFlag,
                             %Length
                             if lengthFlag==1
                                 if(j>1)
-                                    Lengthtemp = pdist([Fibers{i2}(j,:);Fibers{i2}(j-1,:)]);
+                                    Lengthtemp = pdist_([Fibers{i2}(j,:);Fibers{i2}(j-1,:)]);
                                     Matrix_Length(xindex,yindex) = Matrix_Length(xindex,yindex) + Lengthtemp;
                                     Matrix_Length(yindex,xindex) = Matrix_Length(yindex,xindex) + Lengthtemp;
                                 end
@@ -336,4 +336,7 @@ header.swap_zx                   = fread(fid, 1, 'uchar');
 header.n_count                   = fread(fid, 1, 'int')';
 header.version                   = fread(fid, 1, 'int')';
 header.hdr_size                  = fread(fid, 1, 'int')';
+end
+function length=pdist_(node)
+length=sqrt((node(1,1)-node(2,1))^2+(node(1,2)-node(2,2))^2+(node(1,3)-node(2,3))^2);
 end

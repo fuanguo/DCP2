@@ -25,7 +25,7 @@ for i=subIndex
         %             pipeline.(jobnameDcm).command='DCP_dcm2nii(files_in);';
         %             pipeline.(jobnameDcm).files_in=[opt.inputFile filesep subFile(i).name filesep];
         %             pipeline.(jobnameDcm).files_out=[opt.inputFile filesep subFile(i).name filesep];
-        %             jobnameMove=['movefile_' subFile(i).name];
+        %             jobnameMove=['movefile_' subFile(i).name];11
         %             pipeline.(jobnameMove).command='DCP_move_file(file_in)';
         %             pipeline.(jobnameMove).files_in=pipeline.(jobnameDcm).files_out;
         %             pipeline.(jobnameMove).files_out=[opt.inputFile filesep subFile(i).name filesep];
@@ -91,6 +91,95 @@ for i=subIndex
             fprintf(fid,[subFile(i).name '''s tensor calculation is failed\n']);
         end
     end
+    
+    count=1;
+    if opt.parcellation.aal==1
+        opt.parcellation.atlas(count)={[DCPPath filesep 'templates' filesep 'aal90.nii']};
+        count=count+1;
+    end
+    if opt.parcellation.bna==1
+        opt.parcellation.atlas(count)={[DCPPath filesep 'templates' filesep 'BN246_1mm.nii']};
+        count=count+1;
+    end
+    if ~isempty(opt.parcellation.otherAtlas)
+        opt.parcellation.atlas(count)={opt.parcellation.otherAtlas};
+        count=count+1;
+    end
+    opt.matrix.atlas_prob=opt.parcellation.atlas;
+    
+    
+    
+    if opt.parcellation.flag==1
+        set(monitor,'String',[subFile(i).name ' parcellation']);
+        count=1;
+        if opt.parcellation.aal==1
+            opt.parcellation.atlas(count)={[DCPPath filesep 'templates' filesep 'aal90.nii']};
+            count=count+1;
+            %                 jobnameParAAL=['parcellationAAL_' subFile(i).name];
+            %                 pipeline.(jobnameParAAL).command='DCP_parcellation(files_in,opt);';
+            %                 pipeline.(jobnameParAAL).files_in=pipeline.(jobnameTensor).files_out;
+            %                 pipeline.(jobnameParAAL).opt=opt.parcellation;
+            %                 pipeline.(jobnameParAAL).files_out=[opt.inputFile filesep subFile(i).name filesep];
+%             try
+%                 DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation,opt.tracktography.type);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(aal) is done\n']);
+%             catch ErrorInfo
+%                 message=ErrorInfo.message;
+%                 message=strrep(message,'\','\\');
+%                 fprintf(fid,[message '\n']);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(aal) is failed\n']);
+%             end
+        end
+        if opt.parcellation.bna==1
+            opt.parcellation.atlas(count)={[DCPPath filesep 'templates' filesep 'BN246_1mm.nii']};
+            count=count+1;
+            %                 jobnameParRandom=['parcellationRandom_' subFile(i).name];
+            %                 pipeline.(jobnameParRandom).command='DCP_parcellation(files_in,opt);';
+            %                 pipeline.(jobnameParRandom).files_in=pipeline.(jobnameTensor).files_out;
+            %                 pipeline.(jobnameParRandom).opt=opt.parcellation;
+            %                 pipeline.(jobnameParRandom).files_out=[opt.inputFile filesep subFile(i).name filesep];
+%             try
+%                 DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation,opt.tracktography.type);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(random1024) is done\n']);
+%             catch ErrorInfo
+%                 message=ErrorInfo.message;
+%                 message=strrep(message,'\','\\');
+%                 fprintf(fid,[message '\n']);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(random1024) is failed\n']);
+%             end
+        end
+        if ~isempty(opt.parcellation.otherAtlas)
+            opt.parcellation.atlas(count)={opt.parcellation.otherAtlas};
+            count=count+1;
+            %                 jobnameParOther=['parcellationOther_' subFile(i).name];
+            %                 pipeline.(jobnameParOther).command='DCP_parcellation(files_in,opt);';
+            %                 pipeline.(jobnameParOther).files_in=pipeline.(jobnameTensor).files_out;
+            %                 pipeline.(jobnameParOther).opt=opt.parcellation;
+            %                 pipeline.(jobnameParOther).files_out=[opt.inputFile filesep subFile(i).name filesep];
+%             try
+%                 DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation,opt.tracktography.type);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(other) is done\n']);
+%             catch ErrorInfo
+%                 message=ErrorInfo.message;
+%                 message=strrep(message,'\','\\');
+%                 fprintf(fid,[message '\n']);
+%                 fprintf(fid,[subFile(i).name '''s parcellation(other) is failed\n']);
+%             end
+        end
+        opt.matrix.atlas_prob=opt.parcellation.atlas;
+        if count>1
+            try
+                DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation,opt.tracktography.type);
+                fprintf(fid,[subFile(i).name '''s parcellation(other) is done\n']);
+            catch ErrorInfo
+                message=ErrorInfo.message;
+                message=strrep(message,'\','\\');
+                fprintf(fid,[message '\n']);
+                fprintf(fid,[subFile(i).name '''s parcellation(other) is failed\n']);
+            end
+        end
+    end
+    
     if opt.tracktography.flag==1
         set(monitor,'String',[subFile(i).name ' tracktography']);
         %             jobnameTrack=['track_' subFile(i).name];
@@ -102,149 +191,187 @@ for i=subIndex
         %                 pipeline.(jobnameTrack).filese_in=[inputFile filesep subFile(i).name filesep];
         %             end
         %             pipeline.(jobnameTrack).files_out=[opt.inputFile filesep subFile(i).name filesep];
-        try
-            DCP_tracker([opt.inputFile filesep subFile(i).name filesep],opt.tracktography);
-            track_file=dir([opt.inputFile filesep subFile(i).name filesep 'DCP_DTI_DATA' filesep '*.trk']);
-            if isempty(track_file)
+        if opt.tracktography.type==1
+            try
+                DCP_tracker([opt.inputFile filesep subFile(i).name filesep],opt.tracktography);
+                track_file=dir([opt.inputFile filesep subFile(i).name filesep 'DCP_DTI_DATA' filesep '*.trk']);
+                if isempty(track_file)
+                    fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
+                else
+                    fprintf(fid,[subFile(i).name '''s trakctography is done\n']);
+                end
+            catch ErrorInfo
+                message=ErrorInfo.message;
+                message=strrep(message,'\','\\');
+                fprintf(fid,[message '\n']);
                 fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
-            else
-                fprintf(fid,[subFile(i).name '''s trakctography is done\n']);
             end
-        catch ErrorInfo
-            message=ErrorInfo.message;
-            message=strrep(message,'\','\\');
-            fprintf(fid,[message '\n']);
-            fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
-        end
-    end
-    if opt.parcellation.flag==1
-        set(monitor,'String',[subFile(i).name ' parcellation']);
-        if opt.parcellation.aal==1
-            opt.parcellation.atlas=[DCPPath filesep 'templates' filesep 'aal90.nii'];
-            %                 jobnameParAAL=['parcellationAAL_' subFile(i).name];
-            %                 pipeline.(jobnameParAAL).command='DCP_parcellation(files_in,opt);';
-            %                 pipeline.(jobnameParAAL).files_in=pipeline.(jobnameTensor).files_out;
-            %                 pipeline.(jobnameParAAL).opt=opt.parcellation;
-            %                 pipeline.(jobnameParAAL).files_out=[opt.inputFile filesep subFile(i).name filesep];
+        else
             try
-                DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation);
-                fprintf(fid,[subFile(i).name '''s parcellation(aal) is done\n']);
+                DCP_Prob_Track([opt.inputFile filesep subFile(i).name filesep],opt.BedpostX);
+                track_file=dir([opt.inputFile filesep subFile(i).name filesep 'DCP_DTI_DATA' filesep '*_track_post']);
+                if isempty(track_file)
+                    fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
+                else
+                    fprintf(fid,[subFile(i).name '''s trakctography is done\n']);
+                end
             catch ErrorInfo
                 message=ErrorInfo.message;
                 message=strrep(message,'\','\\');
                 fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s parcellation(aal) is failed\n']);
-            end
-        end
-        if opt.parcellation.random==1
-            opt.parcellation.atlas=[DCPPath filesep 'templates' filesep 'aal1024.nii'];
-            %                 jobnameParRandom=['parcellationRandom_' subFile(i).name];
-            %                 pipeline.(jobnameParRandom).command='DCP_parcellation(files_in,opt);';
-            %                 pipeline.(jobnameParRandom).files_in=pipeline.(jobnameTensor).files_out;
-            %                 pipeline.(jobnameParRandom).opt=opt.parcellation;
-            %                 pipeline.(jobnameParRandom).files_out=[opt.inputFile filesep subFile(i).name filesep];
-            try
-                DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation);
-                fprintf(fid,[subFile(i).name '''s parcellation(random1024) is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s parcellation(random1024) is failed\n']);
-            end
-        end
-        if ~isempty(opt.parcellation.otherAtlas)
-            opt.parcellation.atlas=opt.parcellation.otherAtlas;
-            %                 jobnameParOther=['parcellationOther_' subFile(i).name];
-            %                 pipeline.(jobnameParOther).command='DCP_parcellation(files_in,opt);';
-            %                 pipeline.(jobnameParOther).files_in=pipeline.(jobnameTensor).files_out;
-            %                 pipeline.(jobnameParOther).opt=opt.parcellation;
-            %                 pipeline.(jobnameParOther).files_out=[opt.inputFile filesep subFile(i).name filesep];
-            try
-                DCP_parcellation([opt.inputFile filesep subFile(i).name filesep],opt.parcellation);
-                fprintf(fid,[subFile(i).name '''s parcellation(other) is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s parcellation(other) is failed\n']);
+                fprintf(fid,[subFile(i).name '''s tracktography is failed\n']);
             end
         end
     end
+    
+    opt.matrix.curvethresh=opt.BedpostX.curvethresh;
+    opt.matrix.curveinterval=opt.BedpostX.curveinterval;
+    opt.matrix.bedpostxminf=opt.BedpostX.bedpostxminf;
+    switch upper(opt.BedpostX.tracker_type)
+        case 1
+            opt.matrix.tracker='fact';
+        case 2
+            opt.matrix.tracker='euler';
+        case 3
+            opt.matrix.tracker='rk4';
+    end
+    switch upper(opt.BedpostX.interpolator_type)
+        case 1
+            opt.matrix.interpolator='nn';
+        case 2
+            opt.matrix.interpolator='prob_nn';
+        case 3
+            opt.matrix.interpolator='linear';
+        case 4
+            opt.matrix.interpolator='tend';
+        case 5
+            opt.matrix.interpolator='tend_prob_nn';
+        case 6
+            opt.matrix.interpolator='dwi_linear';
+    end
+    opt.matrix.stepsize=opt.BedpostX.stepsize;
+    opt.matrix.mintractlength=opt.BedpostX.mintractlength;
+    opt.matrix.maxtractlength=opt.BedpostX.maxtractlength;
+    
     if opt.matrix.flag==1
         set(monitor,'String',[subFile(i).name ' matrix construction']);
-        opt.matrix.angle=opt.tracktography.angle;
-        opt.matrix.lowFA=opt.tracktography.lowFA;
-        opt.matrix.seed=opt.tracktography.seed;
-        opt.matrix.nativeCheck=opt.parcellation.nativeCheck;
-        if opt.parcellation.aal==1
-            opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'aal90.nii'];
-            %                 jobnameMatrixAAL=['matrixAAL_' subFile(i).name];
-            %                 pipeline.(jobnameMatrixAAL).command='DCP_matrix(files_in1,files_in2,opt);';
-            %                 pipeline.(jobnameMatrixAAL).files_in.files{1}=pipeline.(jobnameTrack).files_out;
-            %                 pipeline.(jobnameMatrixAAL).files_in.files{2}=pipeline.(jobnameParAAL).files_out;
-            %                 pipeline.(jobnameMatrixAAL).opt=opt.matrix;
-            try
-                DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
-                fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
-            end
-        end
-        if opt.parcellation.random==1
-            opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'aal1024.nii'];
-            %                 jobnameMatrixRan=['matrixRan_' subFile(i).name];
-            %                 pipeline.(jobnameMatrixRan).command='DCP_matrix(files_in1,files_in2,opt);';
-            %                 pipeline.(jobnameMatrixRan).files_in.files{1}=pipeline.(jobnameTrack).files_out;
-            %                 pipeline.(jobnameMatrixRan).files_in.files{2}=pipeline.(jobnameParRandom).files_out;
-            %                 pipeline.(jobnameMatrixRan).opt=opt.matrix;
-            try
-                DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
-                fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
-            end
-        end
-        if ~isempty(opt.parcellation.otherAtlas)
-            opt.matrix.atlas=opt.parcellation.otherAtlas;
-            %                 jobnameMatrixOther=['matrixOther_' subFile(i).name];
-            %                 pipeline.(jobnameMatrixOther).command='DCP_matrix(files_in1,files_in2,opt);';
-            %                 pipeline.(jobnameMatrixOther).files_in.files{1}=pipeline.(jobnameTrack).files_out;
-            %                 pipeline.(jobnameMatrixOther).files_in.files{2}=pipeline.(jobnameParOther).files_out;
-            %                 pipeline.(jobnameMatrixOther).opt=opt.matrix;
-            try
-                DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
-                fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
-            end
-        end
-        if opt.parcellation.nativeCheck==1
+        if opt.tracktography.type==1
+            opt.matrix.angle=opt.tracktography.angle;
+            opt.matrix.lowFA=opt.tracktography.lowFA;
+            opt.matrix.seed=opt.tracktography.seed;
             opt.matrix.nativeCheck=opt.parcellation.nativeCheck;
-            opt.matrix.atlas=[opt.parcellation.nativeEdit filesep subFile(i).name '.nii'];
-            %                 jobnameMatrixNative=['matrixNative_' subFile(i).name];
-            %                 pipeline.(jobnameMatrixNative).command='DCP_matrix(files_in1,files_in2,opt);';
-            %                 pipeline.(jobnameMatrixNative).files_in.files{1}=pipeline.(jobnameTrack).files_out;
-            %                 pipeline.(jobnameMatrixNative).files_in.files{2}=[inputFile filesep subFile(i).name filesep];
-            %                 pipeline.(jobnameMatrixNative).opt=opt.matrix;
-            try
-                DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
-                fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
-            catch ErrorInfo
-                message=ErrorInfo.message;
-                message=strrep(message,'\','\\');
-                fprintf(fid,[message '\n']);
-                fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+            if opt.parcellation.aal==1
+                opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'aal90.nii'];
+                %                 jobnameMatrixAAL=['matrixAAL_' subFile(i).name];
+                %                 pipeline.(jobnameMatrixAAL).command='DCP_matrix(files_in1,files_in2,opt);';
+                %                 pipeline.(jobnameMatrixAAL).files_in.files{1}=pipeline.(jobnameTrack).files_out;
+                %                 pipeline.(jobnameMatrixAAL).files_in.files{2}=pipeline.(jobnameParAAL).files_out;
+                %                 pipeline.(jobnameMatrixAAL).opt=opt.matrix;
+                try
+                    DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+                catch ErrorInfo
+                    message=ErrorInfo.message;
+                    message=strrep(message,'\','\\');
+                    fprintf(fid,[message '\n']);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+                end
             end
+            if opt.parcellation.bna==1
+                opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'BN246_1mm.nii'];
+                %                 jobnameMatrixRan=['matrixRan_' subFile(i).name];
+                %                 pipeline.(jobnameMatrixRan).command='DCP_matrix(files_in1,files_in2,opt);';
+                %                 pipeline.(jobnameMatrixRan).files_in.files{1}=pipeline.(jobnameTrack).files_out;
+                %                 pipeline.(jobnameMatrixRan).files_in.files{2}=pipeline.(jobnameParRandom).files_out;
+                %                 pipeline.(jobnameMatrixRan).opt=opt.matrix;
+                try
+                    DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+                catch ErrorInfo
+                    message=ErrorInfo.message;
+                    message=strrep(message,'\','\\');
+                    fprintf(fid,[message '\n']);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+                end
+            end
+            if ~isempty(opt.parcellation.otherAtlas)
+                opt.matrix.atlas=opt.parcellation.otherAtlas;
+                %                 jobnameMatrixOther=['matrixOther_' subFile(i).name];
+                %                 pipeline.(jobnameMatrixOther).command='DCP_matrix(files_in1,files_in2,opt);';
+                %                 pipeline.(jobnameMatrixOther).files_in.files{1}=pipeline.(jobnameTrack).files_out;
+                %                 pipeline.(jobnameMatrixOther).files_in.files{2}=pipeline.(jobnameParOther).files_out;
+                %                 pipeline.(jobnameMatrixOther).opt=opt.matrix;
+                try
+                    DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+                catch ErrorInfo
+                    message=ErrorInfo.message;
+                    message=strrep(message,'\','\\');
+                    fprintf(fid,[message '\n']);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+                end
+            end
+            if opt.parcellation.nativeCheck==1
+                opt.matrix.nativeCheck=opt.parcellation.nativeCheck;
+                opt.matrix.atlas=[opt.parcellation.nativeEdit filesep subFile(i).name '.nii'];
+                %                 jobnameMatrixNative=['matrixNative_' subFile(i).name];
+                %                 pipeline.(jobnameMatrixNative).command='DCP_matrix(files_in1,files_in2,opt);';
+                %                 pipeline.(jobnameMatrixNative).files_in.files{1}=pipeline.(jobnameTrack).files_out;
+                %                 pipeline.(jobnameMatrixNative).files_in.files{2}=[inputFile filesep subFile(i).name filesep];
+                %                 pipeline.(jobnameMatrixNative).opt=opt.matrix;
+                try
+                    DCP_matrix([opt.inputFile filesep subFile(i).name filesep],opt.matrix);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+                catch ErrorInfo
+                    message=ErrorInfo.message;
+                    message=strrep(message,'\','\\');
+                    fprintf(fid,[message '\n']);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+                end
+            end
+        else
+            
+            opt.matrix.curvethresh=opt.BedpostX.curvethresh;
+            opt.matrix.curveinterval=opt.BedpostX.curveinterval;
+            opt.matrix.bedpostxminf=opt.BedpostX.bedpostxminf;
+            switch upper(opt.BedpostX.tracker_type)
+                case 1
+                    opt.matrix.tracker='fact';
+                case 2
+                    opt.matrix.tracker='euler';
+                case 3
+                    opt.matrix.tracker='rk4';
+            end
+            switch upper(opt.BedpostX.interpolator_type)
+                case 1
+                    opt.matrix.interpolator='nn';
+                case 2
+                    opt.matrix.interpolator='prob_nn';
+                case 3
+                    opt.matrix.interpolator='linear';
+                case 4
+                    opt.matrix.interpolator='tend';
+                case 5
+                    opt.matrix.interpolator='tend_prob_nn';
+                case 6
+                    opt.matrix.interpolator='dwi_linear';
+            end
+            opt.matrix.stepsize=opt.BedpostX.stepsize;
+            opt.matrix.mintractlength=opt.BedpostX.mintractlength;
+            opt.matrix.maxtractlength=opt.BedpostX.maxtractlength;
+            
+            %if opt.parcellation.aal==1
+                opt.matrix.atlas=[DCPPath filesep 'templates' filesep 'aal90.nii'];
+                try
+                    DCP_matrix_prob([opt.inputFile filesep subFile(i).name filesep],opt.matrix)
+                    fprintf(fid,[subFile(i).name '''s matrix construction is done\n']);
+                catch ErrorInfo
+                    message=ErrorInfo.message;
+                    message=strrep(message,'\','\\');
+                    fprintf(fid,[message '\n']);
+                    fprintf(fid,[subFile(i).name '''s matrix construction is failed\n']);
+                end
+            %end
         end
     end
 end
@@ -261,16 +388,42 @@ end
 if opt.merge.flag==1
     set(monitor,'String','Results merging');
     %         DCP_merge_matrix(opt);
+    if opt.tracktography.type==1
+        try
+            DCP_merge_matrix(opt);
+            fprintf(fid,'Matrix merging is done\n');
+        catch ErrorInfo
+            message=ErrorInfo.message;
+            message=strrep(message,'\','\\');
+            fprintf(fid,[message '\n']);
+            fprintf(fid,'Matrix merging is failed\n');
+        end
+    else
+        try
+            DCP_merge_matrix_prob(opt);
+            fprintf(fid,'Matrix merging is done\n');
+        catch ErrorInfo
+            message=ErrorInfo.message;
+            message=strrep(message,'\','\\');
+            fprintf(fid,[message '\n']);
+            fprintf(fid,'Matrix merging is failed\n');
+        end
+    end
+end
+
+if opt.analysis.flag==1
+    set(monitor,'String','Network analysis');
     try
-        DCP_merge_matrix(opt);
-        fprintf(fid,'Matrix merging is done\n');
+        DCP_Network_Analysis(opt.analysis);
+        fprintf(fid,'Network analysis is done\n');
     catch ErrorInfo
         message=ErrorInfo.message;
         message=strrep(message,'\','\\');
         fprintf(fid,[message '\n']);
-        fprintf(fid,'Matrix merging is failed\n');
+        fprintf(fid,'Network analysis is failed\n');
     end
 end
+
 fclose(fid);
 set(monitor,'String','Finished');
 fclose all;

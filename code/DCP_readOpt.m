@@ -15,8 +15,32 @@ function Opt=DCP_readOpt(handles)
     Opt.preprocessing.eddy=eddy;
     tensorCal=get(handles.TenCalCheck, 'Value');
     Opt.preprocessing.tensorCal=tensorCal;
+    
     flag=get(handles.TrackCheck, 'Value');
     Opt.tracktography.flag=flag;
+    type=get(handles.TrackType,'value');
+    Opt.tracktography.type=type;
+    
+    flag=get(handles.BedpostxCheck,'Value');
+    Opt.BedpostX.flag=flag;
+    curvethresh=get(handles.curvethresh_edit, 'String');
+    Opt.BedpostX.curvethresh=curvethresh;
+    curveinterval=get(handles.curveinterval_edit, 'String');
+    Opt.BedpostX.curveinterval=curveinterval;
+    bedpostxminf=get(handles.bedpostxminf_edit, 'String');
+    Opt.BedpostX.bedpostxminf=bedpostxminf;
+    stepsize=get(handles.stepsize_edit, 'String');
+    Opt.BedpostX.stepsize=stepsize;
+    tracker_type=get(handles.tracker_type,'value');
+    Opt.BedpostX.tracker_type=tracker_type;
+    interpolator_type=get(handles.interpolator_type,'value');
+    Opt.BedpostX.interpolator_type=interpolator_type;
+    mintractlength=get(handles.mintractlength_edit, 'String');
+    Opt.BedpostX.mintractlength=mintractlength;
+    maxtractlength=get(handles.maxtractlength_edit, 'String');
+    Opt.BedpostX.maxtractlength=maxtractlength;
+    
+    
     lowFA=get(handles.lFAEdit, 'String');
     Opt.tracktography.lowFA=str2double(lowFA);
     highFA=get(handles.hFAEdit, 'String');
@@ -31,12 +55,12 @@ function Opt=DCP_readOpt(handles)
     Opt.tracktography.swap=swap;
     flag=get(handles.ParCheck, 'Value');
     Opt.parcellation.flag=flag;
-    spm8=get(handles.SPM8,'Value');
-    if spm8==1
-        Opt.parcellation.spm='spm8';
-    else
+    %spm8=get(handles.SPM8,'Value');
+    %if spm8==1
+    %    Opt.parcellation.spm='spm8';
+    %else
         Opt.parcellation.spm='spm12';
-    end
+   % end
     template=get(handles.Temedit, 'String');
     Opt.parcellation.template=template;
     T1=get(handles.bT1Edit, 'String');
@@ -45,8 +69,8 @@ function Opt=DCP_readOpt(handles)
     Opt.parcellation.B0=str2double(B0);
     aal=get(handles.AALCheck, 'Value');
     Opt.parcellation.aal=aal;
-    random=get(handles.RandomCheck, 'Value');
-    Opt.parcellation.random=random;
+    bna=get(handles.BNACheck, 'Value');
+    Opt.parcellation.bna=bna;
     otherAtlas=get(handles.Atlasedit, 'String');
     Opt.parcellation.otherAtlas=otherAtlas;
     nativeCheck=get(handles.NativeCheck, 'Value');
@@ -67,4 +91,18 @@ function Opt=DCP_readOpt(handles)
     Opt.merge.flag=flag;
     outputFile=get(handles.outputEdit, 'String');
     Opt.merge.outputFile=outputFile;
+    
+    flag=get(handles.AnalysisCheck, 'Value');
+    Opt.analysis.flag=flag;
+    Opt.analysis.Global_SmallWorld=handles.Global_SmallWorld;
+    Opt.analysis.Global_Efficiency=handles.Global_Efficiency;
+    Opt.analysis.Global_RichClub=handles.Global_RichClub;
+    Opt.analysis.Nodal_ClustCoeff=handles.Nodal_ClustCoeff;
+    Opt.analysis.Nodal_ShortestPath=handles.Nodal_ShortestPath;
+    Opt.analysis.Nodal_Efficiency=handles.Nodal_Efficiency;
+    Opt.analysis.Nodal_BetweennessCentrality=handles.Nodal_BetweennessCentrality;
+    Opt.analysis.Nodal_LocalEfficiency=handles.Nodal_LocalEfficiency;
+    Opt.analysis.Nodal_DegreeCentrality=handles.Nodal_DegreeCentrality;
+    Opt.analysis.input_matrix_path=handles.outputEdit;
+    Opt.analysis.output_path=handles.output_path;
 end

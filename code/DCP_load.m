@@ -32,7 +32,7 @@ function DCP_load(handles, opt)
     set(handles.bT1Edit, 'String', num2str(opt.parcellation.T1));
     set(handles.bB0Edit, 'String', num2str(opt.parcellation.B0));
     set(handles.AALCheck, 'Value', opt.parcellation.aal);
-    set(handles.RandomCheck, 'Value', opt.parcellation.random);
+    set(handles.BNACheck, 'Value', opt.parcellation.bna);
     set(handles.Atlasedit, 'String', opt.parcellation.otherAtlas);
     set(handles.NativeCheck, 'Value', opt.parcellation.nativeCheck);
     if (opt.parcellation.nativeCheck==1)
